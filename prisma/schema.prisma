@@ -1,0 +1,481 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============= ENUMS =============
+
+enum PurchaseOrderStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  ORDERED
+  RECEIVED
+  CANCELLED
+}
+
+enum StockMovementType {
+  IN
+  OUT
+  PURCHASE
+  ISSUE
+  TRANSFER_IN
+  TRANSFER_OUT
+  ADJUSTMENT_IN
+  ADJUSTMENT_OUT
+  RETURN
+  DAMAGED
+  LOST
+  SCRAPPED
+}
+
+enum UserType {
+  TENANT
+  SYSTEM
+}
+
+enum VesselStatus {
+  ACTIVE
+  INACTIVE
+  DRY_DOCK
+  UNDER_REPAIR
+  SOLD
+}
+
+enum VesselType {
+  BULK_CARRIER
+  CONTAINER
+  TANKER
+  LNG
+  LPG
+  OFFSHORE
+  TUG
+  FERRY
+  RO_RO
+  GENERAL_CARGO
+  OTHER
+}
+
+enum WorkOrderStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+  CANCELLED
+}
+
+// ============= MODELS =============
+
+model Permission {
+  id   String @id @default(uuid())
+  code String @unique
+  name String
+
+  roles RolePermission[]
+
+  @@map("Permission")
+}
+
+model Role {
+  id   String @id @default(uuid())
+  name String @unique
+
+  users       UserRole[]
+  permissions RolePermission[]
+  userInvites UserInvite[]
+
+  @@map("Role")
+}
+
+model Company {
+  id           String   @id @default(uuid())
+  name         String
+  code         String   @unique
+  subdomain    String   @unique
+  createdAt    DateTime @default(now()) @map("createdAt")
+  updatedAt    DateTime @updatedAt @map("updatedAt")
+  address      String?
+  email        String?
+  isActive     Boolean  @default(true) @map("isActive")
+  logoUrl      String?
+  phone        String?
+  primaryColor String?
+  timezone     String?  @default("Asia/Ho_Chi_Minh")
+  website      String?
+
+  users       User[]
+  vessels     Vessel[]
+  suppliers   Supplier[]
+  userInvites UserInvite[]
+
+  @@map("companies")
+}
+
+model Supplier {
+  id        String  @id @default(uuid())
+  name      String
+  email     String?
+  phone     String?
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+
+  purchaseOrders PurchaseOrder[]
+
+  @@map("Supplier")
+}
+
+model UserInvite {
+  id        String   @id @default(uuid())
+  email     String
+  roleId    String
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  token     String   @unique
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now())
+
+  @@map("UserInvite")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String
+  password  String
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  firstName String
+  isActive  Boolean  @default(true) @map("isActive")
+  lastName  String
+  phone     String?
+  userType  UserType @map("userType")
+
+  userRoles          UserRole[]
+  workOrders         WorkOrder[]
+  uploadedDocuments  Document[]
+  emailVerifications EmailVerification[]
+  passwordResets     PasswordReset[]
+  notifications      Notification[]
+  stockMovements     StockMovement[]
+  auditLogs          AuditLog[]
+
+  @@unique([email, companyId])
+  @@index([companyId])
+  @@map("users")
+}
+
+model Vessel {
+  id                    String       @id @default(uuid())
+  name                  String
+  imoNumber             String       @unique
+  companyId             String
+  company               Company      @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  createdAt             DateTime     @default(now()) @map("createdAt")
+  updatedAt             DateTime     @updatedAt @map("updatedAt")
+  breadth               Float?
+  buildYear             Int?
+  builderYard           String?
+  callSign              String?
+  classificationSociety String?
+  code                  String?      @unique
+  deadweight            Float?
+  draft                 Float?
+  engineMaker           String?
+  engineModel           String?
+  flag                  String?
+  grossTonnage          Float?
+  imageUrl              String?
+  lengthOverall         Float?
+  mmsiNumber            String?      @unique
+  netTonnage            Float?
+  notes                 String?
+  status                VesselStatus @default(ACTIVE)
+  vesselType            VesselType
+
+  departments  Department[]
+  equipments   Equipment[]
+  inventories  Inventory[]
+  workOrders   WorkOrder[]
+  certificates Certificate[]
+  crews        Crew[]
+  documents    Document[]
+
+  @@index([companyId])
+  @@map("vessels")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String
+  entityId   String
+  oldData    Json?
+  newData    Json?
+  createdAt  DateTime @default(now()) @map("createdAt")
+
+  @@index([userId])
+  @@map("AuditLog")
+}
+
+model Certificate {
+  id         String   @id @default(uuid())
+  vesselId   String
+  vessel     Vessel   @relation(fields: [vesselId], references: [id], onDelete: Restrict)
+  name       String
+  issueDate  DateTime
+  expiryDate DateTime
+  createdAt  DateTime @default(now()) @map("createdAt")
+
+  @@map("Certificate")
+}
+
+model Crew {
+  id          String    @id @default(uuid())
+  firstName   String
+  lastName    String
+  rank        String
+  vesselId    String
+  vessel      Vessel    @relation(fields: [vesselId], references: [id], onDelete: Restrict)
+  signOnDate  DateTime?
+  signOffDate DateTime?
+  createdAt   DateTime  @default(now()) @map("createdAt")
+
+  @@map("Crew")
+}
+
+model Department {
+  id        String   @id @default(uuid())
+  name      String
+  vesselId  String
+  vessel    Vessel   @relation(fields: [vesselId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now()) @map("createdAt")
+  updatedAt DateTime @updatedAt @map("updatedAt")
+
+  equipments Equipment[]
+
+  @@unique([vesselId, name])
+  @@map("Department")
+}
+
+model Document {
+  id           String   @id @default(uuid())
+  vesselId     String
+  vessel       Vessel   @relation(fields: [vesselId], references: [id], onDelete: Restrict)
+  fileName     String
+  filePath     String
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  createdAt    DateTime @default(now()) @map("createdAt")
+
+  @@map("Document")
+}
+
+model EmailVerification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  token     String   @unique
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("createdAt")
+
+  @@map("EmailVerification")
+}
+
+model Equipment {
+  id           String     @id @default(uuid())
+  code         String
+  name         String
+  maker        String?
+  model        String?
+  serialNumber String?
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  createdAt    DateTime   @default(now()) @map("createdAt")
+  vesselId     String?
+  vessel       Vessel?    @relation(fields: [vesselId], references: [id], onDelete: SetNull)
+
+  maintenanceJobs MaintenanceJob[]
+
+  @@unique([departmentId, code])
+  @@map("Equipment")
+}
+
+model Inventory {
+  id        String   @id @default(uuid())
+  name      String
+  vesselId  String
+  vessel    Vessel   @relation(fields: [vesselId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now()) @map("createdAt")
+
+  spareParts SparePart[]
+
+  @@unique([vesselId, name])
+  @@map("Inventory")
+}
+
+model MaintenanceJob {
+  id            String    @id @default(uuid())
+  code          String
+  title         String
+  description   String?
+  frequencyDays Int
+  equipmentId   String
+  equipment     Equipment @relation(fields: [equipmentId], references: [id], onDelete: Restrict)
+  createdAt     DateTime  @default(now()) @map("createdAt")
+
+  workOrders WorkOrder[]
+
+  @@map("MaintenanceJob")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("createdAt")
+
+  @@map("Notification")
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  token     String   @unique
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("createdAt")
+
+  @@map("PasswordReset")
+}
+
+model PurchaseOrder {
+  id         String              @id @default(uuid())
+  poNumber   String              @unique
+  supplierId String
+  supplier   Supplier            @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  status     PurchaseOrderStatus
+  createdAt  DateTime            @default(now()) @map("createdAt")
+
+  items PurchaseOrderItem[]
+
+  @@map("PurchaseOrder")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Restrict)
+
+  @@id([roleId, permissionId])
+  @@map("RolePermission")
+}
+
+model SparePart {
+  id           String    @id @default(uuid())
+  partNumber   String
+  name         String
+  quantity     Int
+  minimumStock Int
+  inventoryId  String
+  inventory    Inventory @relation(fields: [inventoryId], references: [id], onDelete: Restrict)
+  createdAt    DateTime  @default(now()) @map("createdAt")
+
+  stockMovements     StockMovement[]
+  purchaseOrderItems PurchaseOrderItem[]
+
+  @@unique([inventoryId, partNumber])
+  @@map("SparePart")
+}
+
+model StockMovement {
+  id            String            @id @default(uuid())
+  sparePartId   String
+  sparePart     SparePart         @relation(fields: [sparePartId], references: [id], onDelete: Restrict)
+  movementType  StockMovementType
+  quantity      Int
+  balanceBefore Int
+  balanceAfter  Int
+  referenceType String?
+  referenceId   String?
+  remarks       String?
+  createdById   String?
+  createdBy     User?             @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt     DateTime          @default(now()) @map("createdAt")
+
+  @@index([sparePartId])
+  @@index([movementType])
+  @@map("StockMovement")
+}
+
+model UserRole {
+  userId String
+  roleId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@id([userId, roleId])
+  @@map("UserRole")
+}
+
+model WorkOrder {
+  id               String          @id @default(uuid())
+  code             String          @unique
+  maintenanceJobId String
+  maintenanceJob   MaintenanceJob  @relation(fields: [maintenanceJobId], references: [id], onDelete: Restrict)
+  vesselId         String
+  vessel           Vessel          @relation(fields: [vesselId], references: [id], onDelete: Restrict)
+  assignedToId     String?
+  assignedTo       User?           @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+  dueDate          DateTime
+  completedDate    DateTime?
+  status           WorkOrderStatus
+  remarks          String?
+  createdAt        DateTime        @default(now()) @map("createdAt")
+
+  attachments WorkOrderAttachment[]
+
+  @@map("WorkOrder")
+}
+
+model WorkOrderAttachment {
+  id          String    @id @default(uuid())
+  workOrderId String
+  workOrder   WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Restrict)
+  fileName    String
+  filePath    String
+  createdAt   DateTime  @default(now()) @map("createdAt")
+
+  @@map("WorkOrderAttachment")
+}
+
+model PurchaseOrderItem {
+  id              String        @id @default(uuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Restrict)
+  sparePartId     String
+  sparePart       SparePart     @relation(fields: [sparePartId], references: [id], onDelete: Restrict)
+  quantity        Int
+  unitPrice       Decimal       @db.Decimal(12, 2)
+
+  @@map("PurchaseOrderItem")
+}
