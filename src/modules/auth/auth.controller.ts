@@ -1,15 +1,14 @@
 // src/auth/auth.controller.ts
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
+import { Tenant } from '../../common/decorators/tenant.decorator';
 import { AuthService } from './auth.service';
-import { RegisterCompanyDto } from '../dto/register-company.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-
-  @Post('register-company')
-  @HttpCode(HttpStatus.CREATED)
-  async registerCompany(@Body() registerCompanyDto: RegisterCompanyDto) {
-    return this.authService.registerCompany(registerCompanyDto);
+  @Post('login')
+  async login(@Body() dto: LoginDto, @Tenant() tenant?: string) {
+    return this.authService.login(dto, tenant);
   }
 }

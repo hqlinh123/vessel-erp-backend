@@ -170,7 +170,7 @@ model User {
   notifications      Notification[]
   stockMovements     StockMovement[]
   auditLogs          AuditLog[]
-
+  refreshTokens RefreshToken[]
   @@unique([email, companyId])
   @@index([companyId])
   @@map("users")
@@ -478,4 +478,24 @@ model PurchaseOrderItem {
   unitPrice       Decimal       @db.Decimal(12, 2)
 
   @@map("PurchaseOrderItem")
+}
+
+model RefreshToken {
+  id          String   @id @default(uuid())
+
+  token       String
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  expiresAt   DateTime
+
+  isRevoked   Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
 }

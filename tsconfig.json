@@ -25,6 +25,10 @@
 
     "strict": true,
 
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "typeRoots": [
+      "./src/types",
+      "./node_modules/@types"
+    ]
   }
 }

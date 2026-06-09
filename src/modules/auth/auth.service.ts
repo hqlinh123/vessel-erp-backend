@@ -1,185 +1,139 @@
 import {
-  BadRequestException,
-  ConflictException,
+  ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { RoleCode } from '../../generated/prisma/enums';
-import { prisma } from '../../prisma/prisma.service';
-import { RegisterCompanyDto } from '../dto/register-company.dto';
-import { JwtService } from './jwt.service';
+
+import { Role } from '../../common/constants';
+import { LoginDto } from './dto/login.dto';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService,
+  ) {}
 
-  async registerCompany(registerDto: RegisterCompanyDto) {
-    const {
-      companyName,
-      companyCode,
-      subdomain,
-      firstName,
-      lastName,
-      email,
-      password,
-    } = registerDto;
-
-    // Validate subdomain format
-    const normalizedSubdomain = subdomain.trim().toLowerCase();
-    const subdomainRegex = /^[a-z0-9-]{3,30}$/;
-
-    if (!subdomainRegex.test(normalizedSubdomain)) {
-      throw new BadRequestException(
-        'Subdomain must be 3-30 characters and contain only lowercase letters, numbers, and hyphens',
-      );
-    }
-
-    // Check for existing company
-    const existingCompany = await prisma.company.findFirst({
+  async login(dto: LoginDto, tenant?: string) {
+    const user = await this.prisma.user.findFirst({
       where: {
-        OR: [{ name: companyCode }, { subdomain: normalizedSubdomain }],
+        email: dto.email.toLowerCase(),
+        isActive: true,
+      },
+      include: {
+        company: true,
+        userRoles: {
+          include: {
+            role: true,
+          },
+        },
       },
     });
 
-    if (existingCompany) {
-      throw new ConflictException('Company code or subdomain already exists');
+    if (!user) {
+      throw new UnauthorizedException('Invalid email or password');
     }
 
-    // Check for existing user with same email
-    const existingUser = await prisma.user.findFirst({
-      where: { email: email.toLowerCase() },
-    });
+    const isMatch = await bcrypt.compare(dto.password, user.password);
 
-    if (existingUser) {
-      throw new ConflictException('Email already registered');
+    if (!isMatch) {
+      throw new UnauthorizedException('Invalid email or password');
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const roles = user.userRoles.map((item) => item.role.name);
 
-    // Start transaction
-    return prisma.$transaction(async (tx) => {
-      // Find COMPANY_ADMIN role by code
-      let adminRole = await tx.role.findUnique({
-        where: {
-          name: RoleCode.COMPANY_ADMIN,
-        },
-      });
+    const isSystemUser =
+      roles?.includes(Role.SYSTEM_SUPER_ADMIN) ||
+      roles?.includes(Role.SYSTEM_SUPPORT);
 
-      if (!adminRole) {
-        adminRole = await tx.role.create({
-          data: {
-            name: 'COMPANY_ADMIN',
-          },
-        });
+    /**
+     * admin.pmsship.com
+     */
+    if (tenant === 'admin') {
+      if (!isSystemUser) {
+        throw new ForbiddenException('Only system users can login here');
+      }
+    }
+
+    /**
+     * tenant portals
+     */
+    if (tenant !== 'admin') {
+      if (isSystemUser) {
+        throw new ForbiddenException(
+          'System users cannot login to tenant portal',
+        );
       }
 
-      // Create company
-      const company = await tx.company.create({
-        data: {
-          name: companyName,
-          code: companyCode,
-          subdomain: normalizedSubdomain,
-          timezone: 'Asia/Ho_Chi_Minh',
-          isActive: true,
-        },
-      });
+      console.log('subdomain', user.company.subdomain);
+      console.log('tenant', tenant);
 
-      // Create admin user
-      const adminUser = await tx.user.create({
-        data: {
-          email: email.toLowerCase(),
-          password: hashedPassword,
-          firstName,
-          lastName,
-          companyId: company.id,
-          isActive: true,
-          userType: 'TENANT',
-        },
-      });
+      if (user.company?.subdomain !== tenant) {
+        throw new ForbiddenException('Wrong company portal');
+      }
+    }
 
-      // Assign COMPANY_ADMIN role to user
-      await tx.userRole.create({
-        data: {
-          userId: adminUser.id,
-          roleId: adminRole.id,
-        },
-      });
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      companyId: user.companyId,
+      tenant: user.company?.subdomain ?? null,
+      roles,
+    };
 
-      // Generate tokens
-      const accessToken = this.jwtService.generateAccessToken({
-        userId: adminUser.id,
-        email: adminUser.email,
-        companyId: company.id,
-        tenant: company.subdomain,
-        roles: ['COMPANY_ADMIN'],
-        role: 'COMPANY_ADMIN',
-      });
-
-      const refreshToken = this.jwtService.generateRefreshToken({
-        userId: adminUser.id,
-        companyId: company.id,
-      });
-
-      // Hash refresh token before storing
-      const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-      const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 7); // 7 days
-
-      // Store refresh token
-      await tx.refreshToken.create({
-        data: {
-          token: hashedRefreshToken,
-          userId: adminUser.id,
-          expiresAt,
-        },
-      });
-
-      // Create audit log
-      await tx.auditLog.create({
-        data: {
-          userId: adminUser.id,
-          action: 'COMPANY_REGISTERED',
-          entityType: 'Company',
-          entityId: company.id,
-          newData: {
-            companyId: company.id,
-            companyName: company.name,
-            companyCode: company.code,
-            subdomain: company.subdomain,
-            adminUserId: adminUser.id,
-            adminEmail: adminUser.email,
-          },
-        },
-      });
-
-      // Generate login URL based on environment
-      const loginUrl =
-        process.env.NODE_ENV === 'production'
-          ? `https://${company.subdomain}.pmsship.com`
-          : `http://${company.subdomain}.localhost:3000`;
-
-      return {
-        success: true,
-        message: 'Company registered successfully',
-        data: {
-          company: {
-            id: company.id,
-            name: company.name,
-            code: company.code,
-            subdomain: company.subdomain,
-            loginUrl,
-          },
-          user: {
-            id: adminUser.id,
-            firstName: adminUser.firstName,
-            lastName: adminUser.lastName,
-            email: adminUser.email,
-          },
-          accessToken,
-          refreshToken,
-        },
-      };
+    const accessToken = await this.jwtService.signAsync(payload, {
+      expiresIn: '1d',
     });
+
+    const refreshToken = await this.jwtService.signAsync(
+      {
+        sub: user.id,
+      },
+      {
+        expiresIn: '7d',
+      },
+    );
+
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    await this.prisma.refreshToken.create({
+      data: {
+        token: hashedRefreshToken,
+        userId: user.id,
+        expiresAt,
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Login successful',
+
+      data: {
+        accessToken,
+        refreshToken,
+
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          roles,
+        },
+
+        company: user.company
+          ? {
+              id: user.company.id,
+              name: user.company.name,
+              subdomain: user.company.subdomain,
+            }
+          : null,
+      },
+    };
   }
 }
