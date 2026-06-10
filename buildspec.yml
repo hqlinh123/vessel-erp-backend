@@ -1,14 +1,26 @@
 version: 0.2
-run-as:root
+
 phases:
   install:
     runtime-versions:
       nodejs: 20
     commands:
+      - node -v
+      - npm -v
+
+      # install yarn + nest globally
       - npm i -g yarn
+      - npm i -g @nestjs/cli
+
+  pre_build:
+    commands:
+      # clean install is safer here, not in install phase
+      - rm -rf node_modules
+      - rm -f yarn.lock
+
   build:
     commands:
-      - yarn install
+      - yarn install --frozen-lockfile
       - yarn build
 
 artifacts:
