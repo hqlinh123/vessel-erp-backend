@@ -46,7 +46,8 @@
     "prisma": "6",
     "reflect-metadata": "0.2.0",
     "rxjs": "7.8.1",
-    "swagger-ui-express": "5.0.1"
+    "swagger-ui-express": "5.0.1",
+    "thread-stream": "2.0.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
@@ -92,6 +93,6 @@
     "testEnvironment": "node"
   },
   "engines": {
-    "node": "18"
+    "node": "20"
   }
 }
