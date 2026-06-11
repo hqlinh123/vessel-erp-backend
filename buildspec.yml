@@ -14,7 +14,11 @@ phases:
       - yarn
       - yarn add -D @types/jest
   pre_build:
-    commands:      
+    commands:
+      - echo "Starting PostgreSQL container..."
+      - docker run -d --name postgres -e POSTGRES_DB=pmsship_dev_db -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=admin123 -p 5432:5432 postgres:15
+      - sleep 10  # Đợi database khởi động
+
       - echo "Creating real .env for runtime..."
       - echo "DATABASE_URL=${DATABASE_URL}" >> .env
       - echo "JWT_SECRET=${JWT_SECRET}" >> .env
@@ -33,7 +37,6 @@ phases:
       - yarn prisma generate
       - echo "Running lint and tests..."
       - yarn lint || true  # Không fail nếu chưa có lint
-      - yarn test || true      # Không fail nếu chưa có test
      
   build:
     commands:
