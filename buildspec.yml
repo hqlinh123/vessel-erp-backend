@@ -11,8 +11,8 @@ phases:
       - echo "Installing dependencies for $NODE_ENV"
       - npm i -g yarn
       - npm i -g @nestjs/cli
-      - npm i --save-dev @types/jest
       - yarn
+      - yarn add -D @types/jest
   pre_build:
     commands:      
       - echo "Creating real .env for runtime..."
