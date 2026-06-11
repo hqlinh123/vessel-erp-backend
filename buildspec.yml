@@ -11,13 +11,6 @@ phases:
       - yarn install
   pre_build:
     commands:
-      - echo "Checking DATABASE_URL"
-      - |
-        if [ -z "$DATABASE_URL" ]; then
-          echo "DATABASE_URL is empty"
-          exit 1
-        fi
-      - echo "DATABASE_URL prefix: ${DATABASE_URL:0:20}"
       - echo "NODE_ENV=${NODE_ENV}" > .env
       - echo "DATABASE_URL=${DATABASE_URL}" >> .env
       - yarn prisma generate
