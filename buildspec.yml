@@ -10,8 +10,8 @@ phases:
     commands:
       - echo "Installing dependencies for $NODE_ENV"
       - npm i -g yarn
+      - npm i -g @nestjs/cli
       - yarn
-      - yarn add @nextjs/cli
   pre_build:
     commands:
       - echo "Creating .env file from CodePipeline variables"
