@@ -27,7 +27,7 @@ phases:
       # Debug: kiểm tra file .env (ẩn mật khẩu)
       - echo "Environment file created:"
       - cat .env | sed 's/PASSWORD=.*/PASSWORD=***/' | sed 's/SECRET=.*/SECRET=***/'
-      - export DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT:-5432}/${DB_NAME}?schema=public"
+      - echo DATABASE_URL="awseb-e-zeuxqgctpt-stack-awsebrdsdatabase-r53gjgp5rbt4.ccv8qqak27m7.us-east-1.rds.amazonaws.com:3306" >> .env
       - echo "Generating Prisma Client..."
       - echo "Running lint and tests..."
       - yarn lint || true  # Không fail nếu chưa có lint
