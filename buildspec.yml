@@ -6,7 +6,7 @@ env:
 phases:
   install:
     runtime-versions:
-      nodejs: 18
+      nodejs: 22
     commands:
       - echo "Installing dependencies for $NODE_ENV"
       - npm i -g yarn
