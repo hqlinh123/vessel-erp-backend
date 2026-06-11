@@ -10,7 +10,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("postgresql://postgres:postgres@pms-db-dev.cluster-ro-ccv8qqak27m7.us-east-1.rds.amazonaws.com:5432/postgres")
+  url      = env("DATABASE_URL")
 }
 
 // ============= ENUMS =============
