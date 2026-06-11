@@ -11,9 +11,12 @@ phases:
       - echo "Installing dependencies for $NODE_ENV"
       - npm i -g yarn
       - npm i -g @nestjs/cli
+      - npm i --save-dev @types/jest
       - yarn
   pre_build:
     commands:
+      - echo "Generating Prisma Client..."
+      - yarn prisma generate
       - echo "Creating .env file from CodePipeline variables"
       - echo "NODE_ENV=$NODE_ENV" > .env
       - echo "DB_PORT=$DB_PORT" >> .env
@@ -27,8 +30,7 @@ phases:
       - echo "Running lint and tests..."
       - yarn lint || true  # Không fail nếu chưa có lint
       - yarn test || true      # Không fail nếu chưa có test
-      - echo "Generating Prisma Client..."
-      - npx prisma generate
+     
   build:
     commands:
       - echo "Building NestJS application"
