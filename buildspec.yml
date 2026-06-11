@@ -27,10 +27,18 @@ phases:
       - echo "Running lint and tests..."
       - yarn lint || true  # Không fail nếu chưa có lint
       - yarn test || true      # Không fail nếu chưa có test
+      - echo "Generating Prisma Client..."
+      - npx prisma generate
   build:
     commands:
       - echo "Building NestJS application"
       - yarn build
+  post_build:
+    commands:
+      - echo "Running database migrations (if needed)..."
+      - npx prisma migrate deploy  # Chạy migration ở runtime
+      - echo "Seeding database (optional)..."
+      - yarn seed || echo "Seed skipped or failed"
 
 artifacts:
   files:
