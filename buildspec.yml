@@ -15,12 +15,7 @@ phases:
       - yarn add -D @types/jest
   pre_build:
     commands:
-      - echo "Starting PostgreSQL container..."
-      - docker run -d --name postgres -e POSTGRES_DB=pmsship_dev_db -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=admin123 -p 5432:5432 postgres:15
-      - sleep 10  # Đợi database khởi động
-
       - echo "Creating real .env for runtime..."
-      - echo "DATABASE_URL=${DATABASE_URL}" >> .env
       - echo "JWT_SECRET=${JWT_SECRET}" >> .env
       - echo "NODE_ENV=${NODE_ENV}" >> .env
       - echo "Creating .env file from CodePipeline variables"
@@ -33,6 +28,13 @@ phases:
       # Debug: kiểm tra file .env (ẩn mật khẩu)
       - echo "Environment file created:"
       - cat .env | sed 's/PASSWORD=.*/PASSWORD=***/' | sed 's/SECRET=.*/SECRET=***/'
+      - |
+        if [ -n "$DB_HOST" ] && [ -n "$DB_USER" ] && [ -n "$DB_PASSWORD" ]; then
+          export DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT:-5432}/${DB_NAME}?schema=public"
+        fi
+      
+      - echo "DATABASE_URL configured (value hidden)"
+      - echo "DATABASE_URL length: ${#DATABASE_URL}"
       - echo "Generating Prisma Client..."
       - yarn prisma generate
       - echo "Running lint and tests..."
