@@ -14,9 +14,11 @@ phases:
       - npm i --save-dev @types/jest
       - yarn
   pre_build:
-    commands:
-      - echo "Generating Prisma Client..."
-      - yarn prisma generate
+    commands:      
+      - echo "Creating real .env for runtime..."
+      - echo "DATABASE_URL=${DATABASE_URL}" >> .env
+      - echo "JWT_SECRET=${JWT_SECRET}" >> .env
+      - echo "NODE_ENV=${NODE_ENV}" >> .env
       - echo "Creating .env file from CodePipeline variables"
       - echo "NODE_ENV=$NODE_ENV" > .env
       - echo "DB_PORT=$DB_PORT" >> .env
@@ -27,6 +29,8 @@ phases:
       # Debug: kiểm tra file .env (ẩn mật khẩu)
       - echo "Environment file created:"
       - cat .env | sed 's/PASSWORD=.*/PASSWORD=***/' | sed 's/SECRET=.*/SECRET=***/'
+      - echo "Generating Prisma Client..."
+      - yarn prisma generate
       - echo "Running lint and tests..."
       - yarn lint || true  # Không fail nếu chưa có lint
       - yarn test || true      # Không fail nếu chưa có test
