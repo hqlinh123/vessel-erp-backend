@@ -11,9 +11,9 @@ phases:
       - npm i -g yarn
       - npm i -g @nestjs/cli
       - yarn
-      - yarn add -D @types/jest
   pre_build:
     commands:
+      - export DATABASE_URL="pms-db-dev.cluster-ccv8qqak27m7.us-east-1.rds.amazonaws.com:5432/?Action=connect&DBUser=postgres&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIASYBJTDEKNQJ3AADN%2F20260611%2Fus-east-1%2Frds-db%2Faws4_request&X-Amz-Date=20260611T120137Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEDQaCXVzLWVhc3QtMSJGMEQCIGgzXJSI%2BZTk1kV%2F5jD%2F0J%2FwmXZsTcfi0gXqQYihg12oAiB4MkrSFyXvkX5g%2BVP9qegZI9l1C4kn2NKGNaWTN4u8XSrDAgj9%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F8BEAAaDDE4OTA2NTc5NTg2MCIMXVh9JFW7hHbUKOUbKpcCHLcDY29EkEvKhYz67sOBEO3CJC5GkInSeG1%2Fk%2FdhLsDGZk1hrvHDt2SlkKI1vxFYokqRcLehGgExf1bNkFWAe4S6Ox98PCyEmEUZQvlAvgBZErSnRjSjbUPoLJgXefq8%2B%2Bp1vizHsE7%2BdHwO%2FjEsiPV3teC5yJjIHNSHBNSEx8rljA888R%2FqFGyCvAMIlPhFFGEMbyLZjmM0gwYtvlQmufcak3odO3f%2B7TTokLvETl%2BfO2QFdpsn%2F9EBG4DYZ%2F6H2YopWQhCbX%2BG8a1Q6OOuAAHXRpwkesZXvkk%2FcraBSJ3rI2GSee07262cC3ashGSjEL32dc5NGzmBxZQNH8ffs3lpc2jSAyje06%2B6bCjEy91ipN%2FyMr0%2FMNuUqdEGOqsC7QDkB5PkvIEqABP%2FuOkEvoZSo0cfkD22makZBxwCmt1pSUxwdUWKXh0YFSX567VrSHBf4APvexk4h9LJ5hHtbpBP2Pk2cphZOdPNshYPWlvc3MRvCQMxDh8%2BQwDx4z6IVYY21NwmUtNoOlQbN12V49J60JH%2BuSNSUjFJebArV6S1%2B1FtOdeT5RFrxL8%2BMBd8Np8nA84CHvnPt2iiSVYfjHIfPIh7ZSSCkSLNIWOP%2F2AthmJkEYf8cJeDIrwIrIgwG7EERaNkx9AKV1s5hfDMBj1uQdGi58leVbVd1QxrxRTFtWS2PGYkKnABzygDRGrFyV92h0UBAy2whQFbhKJEsF2fygkI9NbgK6OpamLMqyDBwGu7wxUKblpy1k9rTpBC7QOHNuQYosboBBE%3D&X-Amz-Signature=f991a588302435ac9a07e2bb89722fc08e8bc68fdfb0dc5f3fb7d6a2fcabad45"
       - echo "Creating real .env for runtime..."
       - echo "JWT_SECRET=${JWT_SECRET}" >> .env
       - echo "NODE_ENV=${NODE_ENV}" >> .env
@@ -27,7 +27,7 @@ phases:
       # Debug: kiểm tra file .env (ẩn mật khẩu)
       - echo "Environment file created:"
       - cat .env | sed 's/PASSWORD=.*/PASSWORD=***/' | sed 's/SECRET=.*/SECRET=***/'
-      - echo DATABASE_URL="pms-db-dev.cluster-ccv8qqak27m7.us-east-1.rds.amazonaws.com:5432/?Action=connect&DBUser=postgres&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIASYBJTDEKNQJ3AADN%2F20260611%2Fus-east-1%2Frds-db%2Faws4_request&X-Amz-Date=20260611T120137Z&X-Amz-Expires=900&X-Amz-SignedHeaders=host&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEDQaCXVzLWVhc3QtMSJGMEQCIGgzXJSI%2BZTk1kV%2F5jD%2F0J%2FwmXZsTcfi0gXqQYihg12oAiB4MkrSFyXvkX5g%2BVP9qegZI9l1C4kn2NKGNaWTN4u8XSrDAgj9%2F%2F%2F%2F%2F%2F%2F%2F%2F%2F8BEAAaDDE4OTA2NTc5NTg2MCIMXVh9JFW7hHbUKOUbKpcCHLcDY29EkEvKhYz67sOBEO3CJC5GkInSeG1%2Fk%2FdhLsDGZk1hrvHDt2SlkKI1vxFYokqRcLehGgExf1bNkFWAe4S6Ox98PCyEmEUZQvlAvgBZErSnRjSjbUPoLJgXefq8%2B%2Bp1vizHsE7%2BdHwO%2FjEsiPV3teC5yJjIHNSHBNSEx8rljA888R%2FqFGyCvAMIlPhFFGEMbyLZjmM0gwYtvlQmufcak3odO3f%2B7TTokLvETl%2BfO2QFdpsn%2F9EBG4DYZ%2F6H2YopWQhCbX%2BG8a1Q6OOuAAHXRpwkesZXvkk%2FcraBSJ3rI2GSee07262cC3ashGSjEL32dc5NGzmBxZQNH8ffs3lpc2jSAyje06%2B6bCjEy91ipN%2FyMr0%2FMNuUqdEGOqsC7QDkB5PkvIEqABP%2FuOkEvoZSo0cfkD22makZBxwCmt1pSUxwdUWKXh0YFSX567VrSHBf4APvexk4h9LJ5hHtbpBP2Pk2cphZOdPNshYPWlvc3MRvCQMxDh8%2BQwDx4z6IVYY21NwmUtNoOlQbN12V49J60JH%2BuSNSUjFJebArV6S1%2B1FtOdeT5RFrxL8%2BMBd8Np8nA84CHvnPt2iiSVYfjHIfPIh7ZSSCkSLNIWOP%2F2AthmJkEYf8cJeDIrwIrIgwG7EERaNkx9AKV1s5hfDMBj1uQdGi58leVbVd1QxrxRTFtWS2PGYkKnABzygDRGrFyV92h0UBAy2whQFbhKJEsF2fygkI9NbgK6OpamLMqyDBwGu7wxUKblpy1k9rTpBC7QOHNuQYosboBBE%3D&X-Amz-Signature=f991a588302435ac9a07e2bb89722fc08e8bc68fdfb0dc5f3fb7d6a2fcabad45" >> .env
+      - echo DATABASE_URL="${DATABASE_URL}" >> .env
       - echo "Generating Prisma Client..."
       - echo "Running lint and tests..."
       - yarn lint || true  # Không fail nếu chưa có lint
@@ -39,7 +39,7 @@ phases:
   post_build:
     commands:
       - echo "Running database migrations (if needed)..."
-      - npx prisma migrate deploy  # Chạy migration ở runtime
+      - yarn prisma migrate deploy  # Chạy migration ở runtime
       - echo "Seeding database (optional)..."
       - yarn seed || echo "Seed skipped or failed"
 
