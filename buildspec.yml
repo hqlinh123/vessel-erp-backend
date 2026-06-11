@@ -1,52 +1,33 @@
 version: 0.2
-
 env:
-  parameter-store:
-    DB_PASSWORD: "/nestjs/prod/DB_PASSWORD"
-    JWT_SECRET: "/nestjs/prod/JWT_SECRET"
-    REDIS_PASSWORD: "/nestjs/prod/REDIS_PASSWORD"
-  
   variables:
-    NODE_ENV: "production"
-    PORT: "8080"
-    DB_HOST: "nestjs-prod.c7i8k4q2l3o6.us-east-1.rds.amazonaws.com"
-    DB_PORT: "5432"
-    DB_NAME: "nestjs_prod"
-    REDIS_HOST: "nestjs-prod.xxxx.ng.0001.use1.cache.amazonaws.com"
-    REDIS_PORT: "6379"
-
+    NODE_ENV: "development"
+  
 phases:
   install:
     runtime-versions:
       nodejs: 18
     commands:
       - echo "Installing dependencies for $NODE_ENV"
-      - npm ci --only=production
+      - npm ci
   pre_build:
     commands:
-      - echo "Creating .env file for NestJS"
+      - echo "Creating .env file from CodePipeline variables"
       - echo "NODE_ENV=$NODE_ENV" > .env
-      - echo "PORT=$PORT" >> .env
-      - echo "DB_HOST=$DB_HOST" >> .env
       - echo "DB_PORT=$DB_PORT" >> .env
-      - echo "DB_NAME=$DB_NAME" >> .env
+      - echo "DB_HOST=$DB_HOST" >> .env
       - echo "DB_PASSWORD=$DB_PASSWORD" >> .env
       - echo "JWT_SECRET=$JWT_SECRET" >> .env
-      - echo "REDIS_HOST=$REDIS_HOST" >> .env
-      - echo "REDIS_PORT=$REDIS_PORT" >> .env
       - echo "REDIS_PASSWORD=$REDIS_PASSWORD" >> .env
+      # Debug: kiểm tra file .env (ẩn mật khẩu)
       - echo "Environment file created:"
-      - cat .env | grep -v "PASSWORD\|SECRET"  # Debug an toàn (ẩn mật khẩu)
+      - cat .env | sed 's/PASSWORD=.*/PASSWORD=***/' | sed 's/SECRET=.*/SECRET=***/'
   build:
     commands:
       - echo "Building NestJS application"
       - npm run build
-  post_build:
-    commands:
-      - echo "Build completed on `date`"
 
 artifacts:
   files:
     - '**/*'
-    - '.env'  # Quan trọng: gửi .env sang Elastic Beanstalk
-  discard-paths: no
+    - '.env'
