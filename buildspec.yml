@@ -8,26 +8,18 @@ phases:
       nodejs: 22
     commands:
       - npm install -g yarn
-      - npm install -g @nestjs/cli
-      - yarn install --frozen-lockfile
+      - yarn install
   pre_build:
     commands:
-      - echo "Checking DATABASE_URL..."
+      - echo "Checking DATABASE_URL"
       - |
         if [ -z "$DATABASE_URL" ]; then
-          echo "ERROR: DATABASE_URL is empty"
+          echo "DATABASE_URL is empty"
           exit 1
         fi
-      - echo "DATABASE_URL starts with ${DATABASE_URL:0:15}"
-      - cat > .env <<EOF
-        NODE_ENV=${NODE_ENV}
-        DATABASE_URL=${DATABASE_URL}
-        DB_HOST=${DB_HOST}
-        DB_PORT=${DB_PORT}
-        DB_PASSWORD=${DB_PASSWORD}
-        JWT_SECRET=${JWT_SECRET}
-        REDIS_PASSWORD=${REDIS_PASSWORD}
-        EOF
+      - echo "DATABASE_URL prefix: ${DATABASE_URL:0:20}"
+      - echo "NODE_ENV=${NODE_ENV}" > .env
+      - echo "DATABASE_URL=${DATABASE_URL}" >> .env
       - yarn prisma generate
   build:
     commands:
