@@ -31,6 +31,7 @@ phases:
       - cd deploy_bundle
       - zip -r ../deploy.zip .
       - cd ..
+      - echo "End deployment package..."
 artifacts:
   files:
     - deploy.zip
