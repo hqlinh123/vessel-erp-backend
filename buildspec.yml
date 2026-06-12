@@ -1,11 +1,8 @@
 version: 0.2
+
 env:
-  parameter-store:
-    DATABASE_URL: /${ENVIRONMENT}/DATABASE_URL
   variables:
-    NODE_ENV: ${ENVIRONMENT}
-    EB_APP_NAME: your-app-name
-    EB_ENV_NAME: your-env-name
+    NODE_ENV: development
 
 phases:
   install:
@@ -13,25 +10,32 @@ phases:
       nodejs: 20
     commands:
       - npm install -g yarn
-      - yarn install --frozen-lockfile
-      - pip install awsebcli --upgrade  # Cài EB CLI
+      - yarn install
       
   pre_build:
     commands:
-      - echo "NODE_ENV=${ENVIRONMENT}" > .env
+      - echo "NODE_ENV=${NODE_ENV}" > .env
       - echo "DATABASE_URL=${DATABASE_URL}" >> .env
       - yarn prisma generate
-      - yarn build
-      - echo "Creating Procfile..."
-      - echo "web: yarn deploy" > Procfile  # Tạo Procfile tự động
       
   build:
     commands:
-      - echo "Deploying to Elastic Beanstalk..."
-      - eb init $EB_APP_NAME --region $AWS_DEFAULT_REGION
-      - eb use $EB_ENV_NAME
-      - eb deploy --verbose
+      - echo "Building application..."
+      - yarn build
+      - echo "Creating deployment package..."
+      - mkdir -p deploy_bundle
+      - cp -r dist deploy_bundle/
+      - cp -r node_modules deploy_bundle/
+      - cp -r prisma deploy_bundle/
+      - cp package.json deploy_bundle/
+      - cp package-lock.json deploy_bundle/
+      - cp .env deploy_bundle/
+      - echo "web: node dist/main" > deploy_bundle/Procfile
+      - cd deploy_bundle
+      - zip -r ../deploy.zip .
+      - cd ..
       
 artifacts:
   files:
-    - '**/*'
+    - deploy.zip
+  discard-paths: yes
