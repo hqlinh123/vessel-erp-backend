@@ -1,22 +1,37 @@
 version: 0.2
 env:
+  parameter-store:
+    DATABASE_URL: /${ENVIRONMENT}/DATABASE_URL
   variables:
-    NODE_ENV: development
+    NODE_ENV: ${ENVIRONMENT}
+    EB_APP_NAME: your-app-name
+    EB_ENV_NAME: your-env-name
+
 phases:
   install:
     runtime-versions:
-      nodejs: 22
+      nodejs: 20
     commands:
       - npm install -g yarn
-      - yarn install
+      - yarn install --frozen-lockfile
+      - pip install awsebcli --upgrade  # Cài EB CLI
+      
   pre_build:
     commands:
-      - echo "NODE_ENV=${NODE_ENV}" > .env
+      - echo "NODE_ENV=${ENVIRONMENT}" > .env
       - echo "DATABASE_URL=${DATABASE_URL}" >> .env
       - yarn prisma generate
+      - yarn build
+      - echo "Creating Procfile..."
+      - echo "web: yarn deploy" > Procfile  # Tạo Procfile tự động
+      
   build:
     commands:
-      - yarn build
+      - echo "Deploying to Elastic Beanstalk..."
+      - eb init $EB_APP_NAME --region $AWS_DEFAULT_REGION
+      - eb use $EB_ENV_NAME
+      - eb deploy --verbose
+      
 artifacts:
   files:
     - '**/*'
