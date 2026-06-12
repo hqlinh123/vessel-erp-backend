@@ -1,1 +1,1 @@
-web: npx prisma migrate deploy && yarn build && node dist/main
+web: npx prisma migrate deploy && yarn build && node dist/src/main

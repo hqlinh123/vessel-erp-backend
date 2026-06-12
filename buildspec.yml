@@ -1,4 +1,4 @@
-version: 0.2
+version: 0.3
 env:
   variables:
     NODE_ENV: development
@@ -26,7 +26,6 @@ phases:
       - cp package.json deploy_bundle/
       - cp yarn.lock deploy_bundle/
       - cp .env deploy_bundle/
-      # - printf 'web: node dist/main.js\n' > deploy_bundle/Procfile
       - cd deploy_bundle
       - zip -r ../deploy.zip .
       - cd ..
