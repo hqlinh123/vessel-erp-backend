@@ -1,9 +1,7 @@
 version: 0.2
-
 env:
   variables:
     NODE_ENV: development
-
 phases:
   install:
     runtime-versions:
@@ -11,13 +9,11 @@ phases:
     commands:
       - npm install -g yarn
       - yarn install
-      
   pre_build:
     commands:
       - echo "NODE_ENV=${NODE_ENV}" > .env
       - echo "DATABASE_URL=${DATABASE_URL}" >> .env
-      - yarn prisma generate
-      
+      - yarn prisma generate 
   build:
     commands:
       - echo "Building application..."
@@ -34,7 +30,6 @@ phases:
       - cd deploy_bundle
       - zip -r ../deploy.zip .
       - cd ..
-      
 artifacts:
   files:
     - deploy.zip
