@@ -33,7 +33,7 @@ pre_build:
       - zip -r ../deploy.zip .
       - cd ..
       - echo "End deployment package..."
-      - echo "Complete deployment package..."
+      # - echo "Complete deployment package..."
 artifacts:
   files:
     - '**/*'
