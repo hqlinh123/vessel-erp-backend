@@ -9,11 +9,12 @@ phases:
     commands:
       - npm install -g yarn
       - yarn
-  pre_build:
-    commands:
-      - echo "NODE_ENV=${NODE_ENV}" > .env
-      - echo "DATABASE_URL=${DATABASE_URL}" >> .env
-      - yarn prisma generate
+pre_build:
+  commands:
+    - echo "Using environment: ${NODE_ENV}"
+    - cp .env.${NODE_ENV} .env
+    - echo "DATABASE_URL=${DATABASE_URL}" >> .env
+    - yarn prisma generate
   build:
     commands:
       - echo "Building application..."
@@ -34,5 +35,6 @@ phases:
       - echo "End deployment package..."
 artifacts:
   files:
-    - deploy.zip
-  discard-paths: yes
+    - '**/*'
+  base-directory: deploy_bundle
+  discard-paths: no
