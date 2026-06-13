@@ -1,1 +1,1 @@
-web: yarn prisma migrate deploy && yarn build && yarn start
+web: node dist/src/main.js

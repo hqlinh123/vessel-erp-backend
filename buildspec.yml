@@ -15,14 +15,12 @@ pre_build:
     - cp .env.${NODE_ENV} .env
     - echo "DATABASE_URL=${DATABASE_URL}" >> .env
     - yarn prisma generate
+    - yarn prisma migrate deploy 
   build:
     commands:
-      - echo "Building application..."
       - yarn build
-      - echo "Creating deployment package..."
       - mkdir -p deploy_bundle
       - cp -r dist deploy_bundle/
-      - cp -r node_modules deploy_bundle/
       - cp -r prisma deploy_bundle/
       - cp package.json deploy_bundle/
       - cp yarn.lock deploy_bundle/
@@ -32,8 +30,6 @@ pre_build:
       - cd deploy_bundle
       - zip -r ../deploy.zip .
       - cd ..
-      - echo "End deployment package..."
-      - echo "Complete deployment package..."
 artifacts:
   files:
     - '**/*'
