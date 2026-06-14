@@ -18,8 +18,12 @@ pre_build:
     - yarn prisma migrate deploy 
   build:
     commands:
+      - echo "Building NestJS..."
       - yarn build
+
+      - echo "Preparing Elastic Beanstalk bundle..."
       - mkdir -p deploy_bundle
+
       - cp -r dist deploy_bundle/
       - cp -r prisma deploy_bundle/
       - cp package.json deploy_bundle/
@@ -27,9 +31,15 @@ pre_build:
       - cp .env deploy_bundle/
       - |
         printf "web: node dist/src/main.js\n" > deploy_bundle/Procfile
-      - cd deploy_bundle
-      - zip -r ../deploy.zip .
-      - cd ..
+      # Debug (remove later)
+      - echo "=== DIST ==="
+      - find dist -type f | grep main
+
+      - echo "=== DEPLOY BUNDLE ==="
+      - find deploy_bundle -type f | grep main
+      # - cd deploy_bundle
+      # - zip -r ../deploy.zip .
+      # - cd ..
 artifacts:
   files:
     - '**/*'
