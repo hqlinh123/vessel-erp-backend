@@ -8,7 +8,6 @@ phases:
       nodejs: 22
     commands:
       - npm i -g yarn 
-      - npm i
       - yarn install
   pre_build:
     commands:
