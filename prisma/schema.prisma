@@ -42,6 +42,7 @@ enum StockMovementType {
 enum UserType {
   TENANT
   SYSTEM
+  INVITE
 }
 
 enum VesselStatus {
@@ -135,18 +136,30 @@ model Supplier {
 }
 
 model UserInvite {
-  id        String   @id @default(uuid())
-  email     String
-  roleId    String
-  role      Role     @relation(fields: [roleId], references: [id], onDelete: Restrict)
-  token     String   @unique
-  expiresAt DateTime
-  isUsed    Boolean  @default(false)
-  companyId String
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  createdAt DateTime @default(now())
+  id            String       @id @default(uuid())
+  email         String
+  roleId        String
+  role          Role         @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  token         String       @unique
+  expiresAt     DateTime
+  isUsed        Boolean      @default(false)
+  companyId     String
+  company       Company      @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  createdAt     DateTime     @default(now())
+  status        InviteStatus @default(PENDING)
+  firstName     String?
+  lastName      String?
+  invitedBy     String? // User ID who sent the invite
+  invitedByUser User?        @relation(fields: [invitedBy], references: [id])
 
   @@map("UserInvite")
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  CANCELLED
 }
 
 model User {
@@ -157,9 +170,9 @@ model User {
   updatedAt DateTime @updatedAt @map("updatedAt")
   companyId String
   company   Company  @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  firstName String
-  isActive  Boolean  @default(true) @map("isActive")
-  lastName  String
+  firstName String?
+  isActive  Boolean? @default(true) @map("isActive")
+  lastName  String?
   phone     String?
   userType  UserType @map("userType")
 
@@ -171,7 +184,9 @@ model User {
   notifications      Notification[]
   stockMovements     StockMovement[]
   auditLogs          AuditLog[]
-  refreshTokens RefreshToken[]
+  refreshTokens      RefreshToken[]
+  userInvites        UserInvite[]
+
   @@unique([email, companyId])
   @@index([companyId])
   @@map("users")
@@ -482,19 +497,19 @@ model PurchaseOrderItem {
 }
 
 model RefreshToken {
-  id          String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  token       String
+  token String
 
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  expiresAt   DateTime
+  expiresAt DateTime
 
-  isRevoked   Boolean  @default(false)
+  isRevoked Boolean @default(false)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([expiresAt])
