@@ -8,7 +8,6 @@ phases:
       nodejs: 22
     commands:
       - npm install -g yarn
-      - yarn
 pre_build:
   commands:
     - echo "Using environment: ${NODE_ENV}"
