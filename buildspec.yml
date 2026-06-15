@@ -24,6 +24,7 @@ phases:
       - mkdir -p deploy_bundle
       - cp -r dist deploy_bundle/
       - cp -r prisma deploy_bundle/
+      - cp -r dist/generated/prisma deploy_bundle/
       - cp package.json deploy_bundle/
       - cp yarn.lock deploy_bundle/
       - cp package-lock.json deploy_bundle/
