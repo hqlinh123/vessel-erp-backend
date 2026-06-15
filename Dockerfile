@@ -1,4 +1,4 @@
-FROM node:22-alpine AS builder
+FROM public.ecr.aws/docker/library/node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -9,9 +9,10 @@ RUN yarn install --frozen-lockfile
 COPY . .
 
 RUN npx prisma generate
+
 RUN yarn build
 
-FROM node:22-alpine
+FROM public.ecr.aws/docker/library/node:22-alpine
 
 WORKDIR /app
 
@@ -21,9 +22,10 @@ RUN yarn install --production --frozen-lockfile
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
+
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 EXPOSE 3000
 
-CMD ["sh","-c","yarn prisma migrate deploy && node dist/main.js"]
+CMD ["sh","-c","npx prisma migrate deploy && node dist/main.js"]
