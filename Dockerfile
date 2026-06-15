@@ -8,6 +8,10 @@ RUN yarn install --frozen-lockfile
 
 COPY . .
 
+ARG DATABASE_URL="postgresql://admin:Admin123123@localhost:5432/pms-db-dev"
+
+ENV DATABASE_URL=$DATABASE_URL
+
 RUN yarn prisma generate
 
 RUN yarn build

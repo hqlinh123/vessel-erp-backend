@@ -2,15 +2,21 @@ version: 0.2
 phases:
   pre_build:
     commands:
+      - echo "Logging into ECR..."
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $ECR_URI
   build:
     commands:
-      - docker build -t pms-api .
-      - docker tag pms-api:latest $ECR_URI:dev-latest
+      - echo "Building Docker image..."
+      - docker build --build-arg DATABASE_URL="$DATABASE_URL" -t $IMAGE_REPO_NAME .
+
+      - echo "Tagging image..."
+      - docker tag $IMAGE_REPO_NAME:latest $ECR_URI:latest
   post_build:
     commands:
-      - docker push $ECR_URI:dev-latest
-      - printf '[{"name":"nestjs-api","imageUri":"%s"}]' $ECR_URI:dev-latest > imagedefinitions.json
+      - echo "Pushing image..."
+      - docker push $ECR_URI:latest
+      - echo "Creating imagedefinitions.json..."
+      - printf '[{"name":"nestjs-api","imageUri":"%s"}]' "$ECR_URI:latest" > imagedefinitions.json
 artifacts:
   files:
     - imagedefinitions.json
