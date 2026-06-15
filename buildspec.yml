@@ -9,7 +9,7 @@ phases:
     commands:
       - npm install -g yarn
       - rm -rf node_modules
-      - yarn install --frozen-lockfil
+      - yarn install
   pre_build:
     commands:
       - cp .env.${NODE_ENV} .env
