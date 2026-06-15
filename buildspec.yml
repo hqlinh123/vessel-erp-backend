@@ -12,7 +12,6 @@ phases:
       - yarn install --frozen-lockfil
   pre_build:
     commands:
-      - echo "Using environment: ${NODE_ENV}"
       - cp .env.${NODE_ENV} .env
       - echo "DATABASE_URL=${DATABASE_URL}" >> .env
       - yarn prisma generate
@@ -21,13 +20,10 @@ phases:
     commands:
       - echo "Building NestJS..."
       - yarn build
-
       - echo "=== DIST ==="
       - find dist -type f
-
       - echo "Preparing Elastic Beanstalk bundle..."
       - mkdir -p deploy_bundle
-
       - cp -r dist deploy_bundle/
       - cp -r prisma deploy_bundle/
       - cp package.json deploy_bundle/
