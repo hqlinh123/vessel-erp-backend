@@ -8,14 +8,13 @@ phases:
       nodejs: 22
     commands:
       - npm install -g yarn
-      - rm -rf node_modules
       - yarn install
   pre_build:
     commands:
       - cp .env.${NODE_ENV} .env
       - echo "DATABASE_URL=${DATABASE_URL}" >> .env
       - yarn prisma generate
-      - yarn prisma migrate deploy
+      # - yarn prisma migrate deploy
   build:
     commands:
       - echo "Building NestJS..."
@@ -30,7 +29,7 @@ phases:
       - cp yarn.lock deploy_bundle/
       - cp .env deploy_bundle/
       - |
-        printf "web: node dist/main.js\n" > deploy_bundle/Procfile
+        printf "web: node dist/src/main.js\n" > deploy_bundle/Procfile
       - echo "=== DEPLOY BUNDLE ==="
       - find deploy_bundle -type f
 artifacts:
