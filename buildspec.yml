@@ -7,17 +7,19 @@ phases:
     runtime-versions:
       nodejs: 22
     commands:
+      - npm i -g yarn 
       - npm i
+      - yarn install
   pre_build:
     commands:
       - cp .env.${NODE_ENV} .env
       - echo "DATABASE_URL=${DATABASE_URL}" >> .env
-      # - yarn prisma generate
-      # - yarn prisma migrate deploy
+      - yarn prisma generate
+      - yarn prisma migrate deploy
   build:
     commands:
       - echo "Building NestJS..."
-      - npm run build
+      - yarn build
       - echo "=== DIST ==="
       - find dist -type f
       - echo "Preparing Elastic Beanstalk bundle..."
@@ -25,7 +27,7 @@ phases:
       - cp -r dist deploy_bundle/
       - cp -r prisma deploy_bundle/
       - cp package.json deploy_bundle/
-      - cp package-lock.json deploy_bundle/
+      - cp yarn.lock deploy_bundle/
       - cp .env deploy_bundle/
       - |
         printf "web: node dist/main.js\n" > deploy_bundle/Procfile
