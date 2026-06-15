@@ -10,11 +10,11 @@ phases:
       - docker build --build-arg DATABASE_URL="$DATABASE_URL" -t $IMAGE_REPO_NAME .
 
       - echo "Tagging image..."
-      - docker tag $IMAGE_REPO_NAME:latest $ECR_URI:latest
+      - docker tag $IMAGE_REPO_NAME:latest $ECR_URI/$IMAGE_REPO_NAME:latest
   post_build:
     commands:
       - echo "Pushing image..."
-      - docker push $ECR_URI:latest
+      - docker push $ECR_URI/$IMAGE_REPO_NAME:latest
       - echo "Creating imagedefinitions.json..."
       - printf '[{"name":"nestjs-api","imageUri":"%s"}]' "$ECR_URI:latest" > imagedefinitions.json
 artifacts:
