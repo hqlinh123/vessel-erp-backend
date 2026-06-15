@@ -1,9 +1,7 @@
 version: 0.2
-
 env:
   variables:
     NODE_ENV: development
-
 phases:
   install:
     runtime-versions:
@@ -11,8 +9,7 @@ phases:
     commands:
       - npm install -g yarn
       - rm -rf node_modules
-      - yarn install --frozen-lockfile
-
+      - yarn install --frozen-lockfil
   pre_build:
     commands:
       - echo "Using environment: ${NODE_ENV}"
@@ -20,7 +17,6 @@ phases:
       - echo "DATABASE_URL=${DATABASE_URL}" >> .env
       - yarn prisma generate
       - yarn prisma migrate deploy
-
   build:
     commands:
       - echo "Building NestJS..."
@@ -37,13 +33,10 @@ phases:
       - cp package.json deploy_bundle/
       - cp yarn.lock deploy_bundle/
       - cp .env deploy_bundle/
-
       - |
         printf "web: node dist/main.js\n" > deploy_bundle/Procfile
-
       - echo "=== DEPLOY BUNDLE ==="
       - find deploy_bundle -type f
-
 artifacts:
   base-directory: deploy_bundle
   files:
