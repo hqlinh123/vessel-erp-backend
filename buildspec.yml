@@ -26,6 +26,7 @@ phases:
       - cp -r prisma deploy_bundle/
       - cp package.json deploy_bundle/
       - cp yarn.lock deploy_bundle/
+      - cp package-lock.json deploy_bundle/
       - cp .env deploy_bundle/
       - |
         printf "web: node dist/main.js\n" > deploy_bundle/Procfile
