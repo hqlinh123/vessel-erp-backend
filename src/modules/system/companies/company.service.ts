@@ -3,12 +3,16 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
-  NotFoundException
+  NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 import { PrismaService } from '../../../prisma/prisma.service';
-import { InviteUserDto, RegisterCompanyDto, UpdateCompanyDto } from './dto/types';
+import {
+  InviteUserDto,
+  RegisterCompanyDto,
+  UpdateCompanyDto,
+} from './dto/types';
 
 import { Role } from '../../../common/constants';
 import { Prisma } from '../../../generated/prisma/client';
@@ -19,8 +23,8 @@ import { JwtService } from '@nestjs/jwt';
 export class CompanyService {
   constructor(
     private readonly prisma: PrismaService,
-     private readonly jwtService: JwtService,
-  ) { }
+    private readonly jwtService: JwtService,
+  ) {}
 
   async registerCompany(dto: RegisterCompanyDto) {
     const {
@@ -43,13 +47,16 @@ export class CompanyService {
       return {
         success: false,
         message: 'Invalid subdomain format',
-        data: null
+        data: null,
       };
     }
 
     const existingCompany = await this.prisma.company.findFirst({
       where: {
-        OR: [{ name: normalizedCompanyCode }, { subdomain: normalizedSubdomain }],
+        OR: [
+          { name: normalizedCompanyCode },
+          { subdomain: normalizedSubdomain },
+        ],
       },
     });
 
@@ -58,7 +65,7 @@ export class CompanyService {
       return {
         success: false,
         message: 'Company code or subdomain already exists',
-        data: null
+        data: null,
       };
     }
 
@@ -72,7 +79,7 @@ export class CompanyService {
       return {
         success: false,
         message: 'Email already registered',
-        data: null
+        data: null,
       };
     }
 
@@ -90,7 +97,7 @@ export class CompanyService {
         return {
           success: false,
           message: 'COMPANY_ADMIN role not found',
-          data: null
+          data: null,
         };
       }
 
@@ -103,7 +110,7 @@ export class CompanyService {
           isActive: true,
           phone,
           address,
-          email
+          email,
         },
       });
 
@@ -128,7 +135,6 @@ export class CompanyService {
 
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
-
 
       await tx.auditLog.create({
         data: {
@@ -193,7 +199,7 @@ export class CompanyService {
       return {
         success: false,
         message: 'COMPANY_ADMIN role not found',
-        data: null
+        data: null,
       };
     }
 
@@ -294,41 +300,43 @@ export class CompanyService {
       }),
     ]);
 
-    const isTempCompany = companies.some((com)=> com.subdomain === "admin")
+    const isTempCompany = companies.some((com) => com.subdomain === 'admin');
     return {
       success: true,
 
-      data: companies.map((company) => ({
-        id: company.id,
-        name: company.name,
-        code: company.code,
+      data: companies
+        .map((company) => ({
+          id: company.id,
+          name: company.name,
+          code: company.code,
 
-        subdomain: company.subdomain,
+          subdomain: company.subdomain,
 
-        email: company.email,
-        phone: company.phone,
-        address: company.address,
+          email: company.email,
+          phone: company.phone,
+          address: company.address,
 
-        isActive: company.isActive,
+          isActive: company.isActive,
 
-        companyAdmin: company.users.length > 0 ? company.users[0] : null,
+          companyAdmin: company.users.length > 0 ? company.users[0] : null,
 
-        statistics: {
-          totalUsers: company._count.users,
-          totalVessels: company._count.vessels,
-        },
+          statistics: {
+            totalUsers: company._count.users,
+            totalVessels: company._count.vessels,
+          },
 
-        createdAt: company.createdAt,
-        updatedAt: company.updatedAt,
-      })).filter((com) => com.subdomain !== "admin"),
+          createdAt: company.createdAt,
+          updatedAt: company.updatedAt,
+        }))
+        .filter((com) => com.subdomain !== 'admin'),
 
       meta: {
         page,
         limit,
-        total : !isTempCompany ? total : 0,
+        total: !isTempCompany ? total : 0,
         totalPages: !isTempCompany ? Math.ceil(total / limit) : 0,
         hasNextPage: !isTempCompany ? page < Math.ceil(total / limit) : 0,
-        hasPreviousPage: !isTempCompany ? page > 1: null,
+        hasPreviousPage: !isTempCompany ? page > 1 : null,
       },
     };
   }
@@ -391,7 +399,7 @@ export class CompanyService {
       return {
         success: false,
         message: 'Company not found',
-        data: null
+        data: null,
       };
     }
 
@@ -430,7 +438,7 @@ export class CompanyService {
       return {
         success: false,
         message: 'Company not found',
-        data: null
+        data: null,
       };
     }
 
@@ -451,7 +459,7 @@ export class CompanyService {
         return {
           success: false,
           message: 'Company code or subdomain already exists',
-          data: null
+          data: null,
         };
       }
     }
@@ -464,7 +472,7 @@ export class CompanyService {
         return {
           success: false,
           message: 'Invalid subdomain format',
-          data: null
+          data: null,
         };
       }
     }
@@ -583,7 +591,10 @@ export class CompanyService {
       };
     } else {
       // Hard delete - check for dependencies
-      if (existingCompany._count.users > 0 || existingCompany._count.vessels > 0) {
+      if (
+        existingCompany._count.users > 0 ||
+        existingCompany._count.vessels > 0
+      ) {
         throw new BadRequestException(
           `Cannot delete company with ${existingCompany._count.users} users and ${existingCompany._count.vessels} vessels. Please delete or reassign them first.`,
         );
@@ -676,11 +687,7 @@ export class CompanyService {
     return this.updateCompany(id, { isActive });
   }
 
-  async inviteUser(
-    companyId: string,
-    invitedBy: string,
-    dto: InviteUserDto,
-  ) {
+  async inviteUser(companyId: string, invitedBy: string, dto: InviteUserDto) {
     const { email, firstName, lastName, roleId, message } = dto;
 
     // Check if company exists and is active
@@ -735,7 +742,9 @@ export class CompanyService {
 
     const canAssignRole = this.canAssignRole(inviterRoles, role.name);
     if (!canAssignRole) {
-      throw new ForbiddenException('You do not have permission to assign this role');
+      throw new ForbiddenException(
+        'You do not have permission to assign this role',
+      );
     }
 
     // Generate invite token
@@ -866,7 +875,7 @@ export class CompanyService {
           isActive: true,
           userType: 'INVITE',
           firstName: firstName || invite.firstName,
-          lastName: lastName || invite.lastName
+          lastName: lastName || invite.lastName,
         },
       });
 
@@ -1087,7 +1096,9 @@ export class CompanyService {
 
     const canCancelInvite = this.canCancelInvite(userRoles, invite.invitedBy);
     if (!canCancelInvite) {
-      throw new ForbiddenException('You do not have permission to cancel this invite');
+      throw new ForbiddenException(
+        'You do not have permission to cancel this invite',
+      );
     }
 
     await this.prisma.userInvite.update({
@@ -1159,7 +1170,12 @@ export class CompanyService {
 
   // Permission helper methods
   private canAssignRole(inviterRoles: any[], targetRole: string): boolean {
-    const roleHierarchy = ['SYSTEM_SUPER_ADMIN', 'COMPANY_ADMIN', 'MANAGER', 'USER'];
+    const roleHierarchy = [
+      'SYSTEM_SUPER_ADMIN',
+      'COMPANY_ADMIN',
+      'MANAGER',
+      'USER',
+    ];
     const inviterHighestRole = this.getHighestRole(inviterRoles);
     const targetRoleLevel = roleHierarchy.indexOf(targetRole);
     const inviterRoleLevel = roleHierarchy.indexOf(inviterHighestRole);
@@ -1168,7 +1184,12 @@ export class CompanyService {
   }
 
   private getHighestRole(roles: any[]): string {
-    const roleHierarchy = ['SYSTEM_SUPER_ADMIN', 'COMPANY_ADMIN', 'MANAGER', 'USER'];
+    const roleHierarchy = [
+      'SYSTEM_SUPER_ADMIN',
+      'COMPANY_ADMIN',
+      'MANAGER',
+      'USER',
+    ];
     let highestRole = 'USER';
     let highestLevel = roleHierarchy.length;
 
@@ -1185,12 +1206,19 @@ export class CompanyService {
 
   private canViewAllUsers(userRoles: any[]): boolean {
     return userRoles.some(
-      (ur) => ur.role.name === 'SYSTEM_SUPER_ADMIN' || ur.role.name === 'COMPANY_ADMIN',
+      (ur) =>
+        ur.role.name === 'SYSTEM_SUPER_ADMIN' ||
+        ur.role.name === 'COMPANY_ADMIN',
     );
   }
 
   private getAllowedRoles(userRoles: any[]): string[] {
-    const roleHierarchy = ['SYSTEM_SUPER_ADMIN', 'COMPANY_ADMIN', 'MANAGER', 'USER'];
+    const roleHierarchy = [
+      'SYSTEM_SUPER_ADMIN',
+      'COMPANY_ADMIN',
+      'MANAGER',
+      'USER',
+    ];
     const highestRole = this.getHighestRole(userRoles);
     const highestLevel = roleHierarchy.indexOf(highestRole);
     return roleHierarchy.slice(highestLevel);
@@ -1198,13 +1226,14 @@ export class CompanyService {
 
   private canCancelInvite(userRoles: any[], invitedBy: string | null): boolean {
     const isAdmin = userRoles.some((ur) => ur.role.name === 'COMPANY_ADMIN');
-    const isSuperAdmin = userRoles.some((ur) => ur.role.name === 'SYSTEM_SUPER_ADMIN');
-    
+    const isSuperAdmin = userRoles.some(
+      (ur) => ur.role.name === 'SYSTEM_SUPER_ADMIN',
+    );
+
     if (isSuperAdmin) return true;
     if (isAdmin) return true;
-    
+
     // Users can only cancel their own invites
     return userRoles.some((ur) => ur.userId === invitedBy);
   }
 }
-

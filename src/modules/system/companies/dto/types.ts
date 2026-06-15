@@ -12,7 +12,6 @@ import {
   IsUrl,
 } from 'class-validator';
 
-
 export class RegisterCompanyDto {
   @IsString()
   @IsNotEmpty()
@@ -33,7 +32,8 @@ export class RegisterCompanyDto {
   @MinLength(3)
   @MaxLength(30)
   @Matches(/^[a-z0-9-]+$/, {
-    message: 'Subdomain can only contain lowercase letters, numbers, and hyphens',
+    message:
+      'Subdomain can only contain lowercase letters, numbers, and hyphens',
   })
   subdomain!: string;
 
@@ -93,7 +93,8 @@ export class RegisterCompanyDto {
   @IsNotEmpty()
   @MinLength(8)
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
-    message: 'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+    message:
+      'Password must contain at least one uppercase letter, one lowercase letter, and one number',
   })
   adminPassword!: string;
 }

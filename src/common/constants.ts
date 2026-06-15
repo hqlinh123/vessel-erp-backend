@@ -14,6 +14,6 @@ export enum Role {
   ENGINEER = 'ENGINEER',
   CREW = 'CREW',
   VIEWER = 'VIEWER',
-  MANAGER = "MANAGER",
-  USER = "USER",
+  MANAGER = 'MANAGER',
+  USER = 'USER',
 }

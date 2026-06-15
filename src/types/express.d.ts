@@ -7,7 +7,7 @@ declare global {
     interface Request {
       tenant?: string;
       company?: Company;
-      companyId?: string
+      companyId?: string;
     }
   }
 }

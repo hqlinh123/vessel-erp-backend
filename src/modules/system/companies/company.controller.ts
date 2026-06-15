@@ -12,19 +12,23 @@ import {
   Post,
   Put,
   Query,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { TokenGuard } from '../../auth/guards/token.guard';
 import { CompanyService } from './company.service';
-import { InviteUserDto, RegisterCompanyDto, UpdateCompanyDto } from './dto/types';
+import {
+  InviteUserDto,
+  RegisterCompanyDto,
+  UpdateCompanyDto,
+} from './dto/types';
 import { Role } from '../../../common/constants';
 import { Roles } from '../../auth/decorators/roles.decorator';
 
 @Controller('super-admin')
 @UseGuards(TokenGuard, RolesGuard)
 export class CompanyController {
-  constructor(private readonly companyService: CompanyService) { }
+  constructor(private readonly companyService: CompanyService) {}
   @Post('companies/register')
   @HttpCode(HttpStatus.CREATED)
   async registerCompany(@Body() registerCompanyDto: RegisterCompanyDto) {
@@ -114,7 +118,9 @@ export class CompanyController {
 
   @Get(':companyId/invites')
   @Roles(Role.COMPANY_ADMIN, Role.SYSTEM_SUPER_ADMIN)
-  async getPendingInvites(@Param('companyId', ParseUUIDPipe) companyId: string) {
+  async getPendingInvites(
+    @Param('companyId', ParseUUIDPipe) companyId: string,
+  ) {
     return this.companyService.getPendingInvites(companyId);
   }
 
@@ -123,7 +129,7 @@ export class CompanyController {
   async cancelInvite(
     @Param('companyId', ParseUUIDPipe) companyId: string,
     @Param('inviteId', ParseUUIDPipe) inviteId: string,
-     @Body('id') id: string,
+    @Body('id') id: string,
   ) {
     return this.companyService.cancelInvite(companyId, inviteId, id);
   }
