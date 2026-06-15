@@ -8,6 +8,7 @@ phases:
       nodejs: 22
     commands:
       - npm install -g yarn
+      - yarn install
 pre_build:
   commands:
     - echo "Using environment: ${NODE_ENV}"
@@ -36,9 +37,9 @@ pre_build:
 
       - echo "=== DEPLOY BUNDLE ==="
       - find deploy_bundle -type f | grep main
-      - cd deploy_bundle
-      - zip -r ../deploy.zip .
-      - cd ..
+      # - cd deploy_bundle
+      # - zip -r ../deploy.zip .
+      # - cd ..
 artifacts:
   files:
     - '**/*'
