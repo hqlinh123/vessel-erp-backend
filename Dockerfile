@@ -14,6 +14,8 @@ ENV DATABASE_URL=$DATABASE_URL
 
 RUN yarn prisma generate
 
+RUN yarn prisma migrate deploy
+
 RUN yarn build
 
 FROM public.ecr.aws/docker/library/node:22-alpine
@@ -32,4 +34,4 @@ COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 EXPOSE 3000
 
-CMD ["sh","-c","yarn prisma migrate deploy && node dist/main.js"]
+CMD ["sh","-c","node dist/main.js"]
