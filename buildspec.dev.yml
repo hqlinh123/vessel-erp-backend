@@ -16,7 +16,7 @@ phases:
       - echo "Pushing image..."
       - docker push $ECR_URI/$IMAGE_REPO_NAME:$IMAGES_TAGS
       - echo "Creating imagedefinitions.json..."
-      - printf '[{"name":"nestjs-api","imageUri":"%s"}]' "$ECR_URI:$IMAGES_TAGS" > imagedefinitions.json
+      - printf '[{"name":"Main","imageUri":"%s"}]' "$ECR_URI:$IMAGES_TAGS" > imagedefinitions.json
 artifacts:
   files:
     - imagedefinitions.json
