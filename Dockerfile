@@ -8,7 +8,7 @@ RUN yarn install --frozen-lockfile
 
 COPY . .
 
-ARG DATABASE_URL="postgresql://admin:Admin123123@localhost:5432/pms-db-dev"
+ARG DATABASE_URL="postgresql://pmsadmin:pmsadmin@database-1.ccv8qqak27m7.us-east-1.rds.amazonaws.com:5432/postgres"
 
 ENV DATABASE_URL=$DATABASE_URL
 
