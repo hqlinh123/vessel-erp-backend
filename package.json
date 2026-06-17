@@ -18,8 +18,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed": "tsx prisma/seed.ts",
-    "migrate:dev": "yarn pris:generate && yarn prisma migrate dev --name init && yarn seed",
-    "migrate:prod": "yarn pris:generate && yarn prisma migrate deploy && yarn seed",
+    "migrate:dev": "yarn pris:generate && yarn prisma migrate dev --name init",
+    "migrate:prod": "yarn pris:generate && yarn prisma migrate deploy",
     "pris:generate": "yarn prisma generate"
   },
   "dependencies": {
