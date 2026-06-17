@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { Role } from '../src/common/constants';
 import { PrismaService } from '../src/prisma/prisma.service';
 
