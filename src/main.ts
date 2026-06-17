@@ -1,44 +1,18 @@
-import 'reflect-metadata';
-import { ValidationPipe } from '@nestjs/common/pipes';
-import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder } from '@nestjs/swagger';
-
+import { createServer } from 'http';
+import serverless from 'serverless-http';
 import { AppModule } from './app.module';
+import { NestFactory } from '@nestjs/core';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+let cachedHandler: (arg0: any, arg1: any) => any;
 
-  // Enable CORS
-  app.enableCors();
+export default async function handler(req: any, res: any) {
+  if (!cachedHandler) {
+    const app = await NestFactory.create(AppModule);
+    await app.init();
 
-  // Global prefix - IMPORTANT: this must match your route
-  app.setGlobalPrefix('api');
+    const expressApp = app.getHttpAdapter().getInstance();
+    cachedHandler = serverless(expressApp);
+  }
 
-  // Global validation pipe
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-    }),
-  );
-
-  // Swagger documentation
-  const config = new DocumentBuilder()
-    .setTitle('PMSShip API')
-    .setDescription('Maritime ERP System API')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-
-  // const document = SwaggerModule.createDocument(app, config);
-  // SwaggerModule.setup('api/docs', app, document);
-  const port = process.env.PORT ?? 8080;
-  await app.listen(port, '0.0.0.0');
-  console.log(`Application is running on: http://localhost:${port}`);
-  console.log(`API prefix: /api`);
-  console.log(
-    `Auth endpoint: http://localhost:${port}/api/auth/register-company`,
-  );
+  return cachedHandler(req, res);
 }
-bootstrap();
