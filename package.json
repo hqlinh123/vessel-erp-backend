@@ -21,7 +21,7 @@
     "migrate:dev": "yarn pris:generate && yarn prisma migrate dev --name init",
     "migrate:prod": "yarn pris:generate && yarn prisma migrate deploy",
     "pris:generate": "yarn prisma generate",
-    "deploy:dev": "cp .env.preview .env && yarn build && vercel",
+    "deploy:dev": "cp .env.preview .env && yarn build && vercel build && vercel deploy --prebuilt",
     "deploy:prod": "cp .env.prod .env && yarn prisma migrate deploy && yarn build && vercel --prod"
   },
   "dependencies": {
