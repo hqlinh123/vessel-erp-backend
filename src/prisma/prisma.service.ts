@@ -14,7 +14,7 @@ export class PrismaService
   constructor() {
     super({
       adapter: new PrismaPg({
-        connectionString: env('DATABASE_URL'),
+        connectionString: env('POSTGRES_URL'),
       }),
 
       log: ['error', 'warn'],
